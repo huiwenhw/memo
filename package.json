@@ -8,6 +8,7 @@
   "dependencies": {
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
+    "react-dragula": "^1.1.17",
     "react-sortable": "^1.2.0"
   },
   "scripts": {
