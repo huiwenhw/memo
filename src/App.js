@@ -1,44 +1,80 @@
 import React, { Component } from 'react';
-//import ReactDOM from 'react-dom';
-//import { sortable } from 'react-sortable';
-import dragula from 'react-dragula';
+import update from 'react/lib/update';
+import { DragDropContext } from 'react-dnd';
+import { DragDropContextProvider } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
+import Card from './Card';
+import List from './List';
 import './App.css';
+
+
+const style = {
+	width: 400,
+};
 
 class App extends Component {
 	render() {
 		return (
+				<DragDropContextProvider backend={HTML5Backend}>
 				<TodoInput />
+				</DragDropContextProvider>
 			   )
 	}
 }
 
-// Receives TodoList's items state property as a prop called entries
-var TodoList = React.createClass({
+class Container extends Component {
+	constructor(props) {
+		super(props);
+		this.moveCard = this.moveCard.bind(this);
+		this.state = {
+			cards: props.data
+		};
+	}
+
+	moveCard(dragIndex, hoverIndex) {
+		const { cards } = this.state;
+		const dragCard = cards[dragIndex];
+
+		this.setState(update(this.state, {
+			cards: {
+				$splice: [
+					[dragIndex, 1],
+					[hoverIndex, 0, dragCard],
+				],
+			},
+		}));
+	}
+
+	render() {
+		const { cards } = this.state;
+		console.log({cards});
+
+		return (
+				<div style={style}>
+				{cards.map((card, i) => (
+							<Card
+							key={card.key}
+							index={i}
+							id={card.key}
+							text={card.text}
+							moveCard={this.moveCard}
+							/>
+							))}
+				</div>
+			   );
+	}
+}
+
+var Header = React.createClass({
 	render: function() {
 		return (
 				<div className="lists">
 				<div className="listHeader">
 				<p className="listTitle"> To Do </p>
-				<p className="listTotal"> { this.props.entries.length } </p>
+				<p className="listTotal"> </p>
 				</div>
 				<div id="todolist" className="list">
-				{ this.props.entries }
-				</div>
-				</div>
-			   );
-	}
-});
-
-var InProgressList = React.createClass({
-	render: function() {
-		return (
-				<div className="lists">
-				<div className="listHeader">
-				<p className="listTitle"> In Progress  </p>
-				<p className="listTotal"> { this.props.entries.length } </p>
-				</div>
-				<div id="inprogresslist" className="list">
-				{ this.props.entries }
+				<Container data={this.props.data}/>
 				</div>
 				</div>
 			   );
@@ -48,12 +84,12 @@ var InProgressList = React.createClass({
 var TodoInput = React.createClass({
 	getInitialState: function() {
 		return {
-			todoItems: [],
-			inprogressItems: []
+			items: [],
+			data: [],
 		};
 	},
 	addItem: function(e) {
-		var itemArray = this.state.todoItems;
+		var itemArray = this.state.items;
 
 		// Adding object of text & key properties
 		itemArray.push({
@@ -62,40 +98,22 @@ var TodoInput = React.createClass({
 		});
 
 		this.setState({
-			todoItems: itemArray
+			items: itemArray
 		});
 
 		this._inputElement.value = "";
 
 		// Prevents triggering browser's default POST behavior
+		// <TodoList entries={todolistItems}/>
+		// <InProgressList entries={inprogresslistItems}/>
 		e.preventDefault();
-	},
-	updateItems: function(e1, target, source) {
-			console.log(`e1: ${e1.id} target: ${target.id} source: ${source.id}`);
-			// remove from source 
-			// Receiving error cause dragula removes from DOM manually
-			var tempArr = this.state.todoItems.filter(function(item) {
-				console.log(`inupdate item.text: ${item.text} item.key: ${item.key} `);
-				console.log(item.key !== parseInt(e1.id, 10));
-				return item.key !== parseInt(e1.id, 10);
-			});
-			this.setState({
-				todoItems: tempArr 
-			});
-			// add to target 
-			var itemArray = this.state.inprogressItems;
-			itemArray.push(e1);
-			this.setState({
-				inprogressItems: itemArray
-			});
 	},
 	render: function() {
 		function createTasks(item) {
 			return <div className="list-item" id={item.key} key={item.key}>{item.text}</div>
 		}
 
-		var todolistItems = this.state.todoItems.map(createTasks);
-		var inprogresslistItems = this.state.inprogressItems.map(createTasks);
+		var todoitems = this.state.items.map(createTasks);
 		return (
 				<div className="todoListMain">
 				<div className="header">
@@ -105,19 +123,72 @@ var TodoInput = React.createClass({
 				placeholder="enter task"></input>
 				</form>
 				</div>
-				<div className="wrapper">
-				<TodoList entries={todolistItems}/>
-				<InProgressList entries={inprogresslistItems}/>
-				</div>
+				<Header data={this.state.items} />
 				</div>
 			   );
-	},
-	componentDidMount() {
-		var that = this;
-		dragula([document.getElementById('todolist'), document.getElementById('inprogresslist')]).on('drop', function(e1, target, source) {	
-			that.updateItems(e1, target, source);
-		});
 	}
 });
 
 export default App;
+
+//module.exports = DragDropContext(HTML5Backend)(Container);
+
+/*
+// Receives TodoList's items state property as a prop called entries
+var TodoList = React.createClass({
+render: function() {
+return (
+<div className="lists">
+<div className="listHeader">
+<p className="listTitle"> To Do </p>
+<p className="listTotal"> { this.props.entries.length } </p>
+</div>
+<div id="todolist" className="list">
+{ this.props.entries }
+</div>
+</div>
+);
+}
+});
+
+var InProgressList = React.createClass({
+render: function() {
+return (
+<div className="lists">
+<div className="listHeader">
+<p className="listTitle"> In Progress  </p>
+<p className="listTotal"> { this.props.entries.length } </p>
+</div>
+<div id="inprogresslist" className="list">
+{ this.props.entries }
+</div>
+</div>
+);
+}
+});
+*/
+
+/*
+   cards: [{
+   key: 1,
+   text: 'Write a cool JS library',
+   }, {
+   key: 2,
+   text: 'Make it generic enough',
+   }, {
+   key: 3,
+   text: 'Write README',
+   }, {
+   key: 4,
+   text: 'Create some examples',
+   }, {
+   key: 5,
+   text: 'Spam in Twitter and IRC to promote it (note that this element is taller than the others)',
+   }, {
+   key: 6,
+   text: '???',
+   }, {
+   key: 7,
+   text: 'PROFIT',
+   }],
+   */
