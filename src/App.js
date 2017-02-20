@@ -1,95 +1,30 @@
 import React, { Component } from 'react';
-import update from 'react/lib/update';
 import { DragDropContext } from 'react-dnd';
-import { DragDropContextProvider } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
-import Card from './Card';
-import List from './List';
+import update from 'react/lib/update';
+import Container from './Container';
 import './App.css';
-
-
-const style = {
-	width: 400,
-};
 
 class App extends Component {
 	render() {
-		return (
-				<DragDropContextProvider backend={HTML5Backend}>
+		return(
 				<TodoInput />
-				</DragDropContextProvider>
-			   )
+			  )
 	}
 }
 
-class Container extends Component {
-	constructor(props) {
-		super(props);
-		this.moveCard = this.moveCard.bind(this);
-		this.state = {
-			cards: props.data
-		};
-	}
-
-	moveCard(dragIndex, hoverIndex) {
-		const { cards } = this.state;
-		const dragCard = cards[dragIndex];
-
-		this.setState(update(this.state, {
-			cards: {
-				$splice: [
-					[dragIndex, 1],
-					[hoverIndex, 0, dragCard],
-				],
-			},
-		}));
-	}
-
-	render() {
-		const { cards } = this.state;
-		console.log({cards});
-
-		return (
-				<div style={style}>
-				{cards.map((card, i) => (
-							<Card
-							key={card.key}
-							index={i}
-							id={card.key}
-							text={card.text}
-							moveCard={this.moveCard}
-							/>
-							))}
-				</div>
-			   );
-	}
-}
-
-var Header = React.createClass({
-	render: function() {
-		return (
-				<div className="lists">
-				<div className="listHeader">
-				<p className="listTitle"> To Do </p>
-				<p className="listTotal"> </p>
-				</div>
-				<div id="todolist" className="list">
-				<Container data={this.props.data}/>
-				</div>
-				</div>
-			   );
-	}
-});
-
+// To add more lists, create array to store items && 
+// Add <Container ... /> component in render function below
 var TodoInput = React.createClass({
 	getInitialState: function() {
 		return {
-			items: [],
-			data: [],
+			todoitems:  [],
+			inprogressitems: [],
+			doneitems: [],
 		};
 	},
 	addItem: function(e) {
-		var itemArray = this.state.items;
+		var itemArray = this.state.todoitems;
 
 		// Adding object of text & key properties
 		itemArray.push({
@@ -98,22 +33,59 @@ var TodoInput = React.createClass({
 		});
 
 		this.setState({
-			items: itemArray
+			todoitems: itemArray
 		});
 
 		this._inputElement.value = "";
 
 		// Prevents triggering browser's default POST behavior
-		// <TodoList entries={todolistItems}/>
-		// <InProgressList entries={inprogresslistItems}/>
 		e.preventDefault();
 	},
-	render: function() {
-		function createTasks(item) {
-			return <div className="list-item" id={item.key} key={item.key}>{item.text}</div>
+	push: function(listName) {
+		return function(card) {
+			console.log("push");
+			let newState = update(this.state, {
+				[listName]: {
+					$push: [card]
+				}
+			});
+			console.log(newState);
+			this.setState(newState);
 		}
-
-		var todoitems = this.state.items.map(createTasks);
+	},
+	remove: function(listName) {
+		return function(index) {
+			console.log("remove");
+			let newState = update(this.state, {
+				[listName]: {
+					$splice: [
+						[index, 1]
+					]
+				}
+			});
+			console.log(newState);
+			this.setState(newState);
+		}
+	},
+	move: function(listName) {
+		return function(dragIndex, hoverIndex) {
+			console.log("parent move");
+			const cards = this.state[listName];
+			const dragCard = cards[dragIndex];
+			let newState = update(this.state, {
+				[listName]: {
+					$splice: [
+						[dragIndex, 1],
+						[hoverIndex, 0, dragCard],
+					],
+				}
+			});
+			console.log(newState);
+			this.setState(newState);
+		}
+	},
+	render: function() {
+		var total = this.state.todoitems.length + this.state.inprogressitems.length + this.state.doneitems.length;
 		return (
 				<div className="todoListMain">
 				<div className="header">
@@ -122,73 +94,19 @@ var TodoInput = React.createClass({
 				<input ref={(a) => this._inputElement = a}  
 				placeholder="enter task"></input>
 				</form>
+				<ul className="totalItems">
+				<li> TOTAL </li>
+				<li id="totalNum"> { total } Projects </li>
+				</ul>
 				</div>
-				<Header data={this.state.items} />
+				<div className="listContainers">
+				<Container push={this.push('todoitems').bind(this)} remove={this.remove('todoitems').bind(this)} move={this.move('todoitems').bind(this)} title={"To Do"} id={"todolist"} list={this.state.todoitems} />
+				<Container push={this.push('inprogressitems').bind(this)} remove={this.remove('inprogressitems').bind(this)} move={this.move('inprogressitems').bind(this)} title={"In Progress"} id={"inprogresslist"} list={this.state.inprogressitems} />
+				<Container push={this.push('doneitems').bind(this)} remove={this.remove('doneitems').bind(this)} move={this.move('doneitems').bind(this)} title={"Done"} id={"done"} list={this.state.doneitems} />
+				</div>
 				</div>
 			   );
 	}
 });
 
-export default App;
-
-//module.exports = DragDropContext(HTML5Backend)(Container);
-
-/*
-// Receives TodoList's items state property as a prop called entries
-var TodoList = React.createClass({
-render: function() {
-return (
-<div className="lists">
-<div className="listHeader">
-<p className="listTitle"> To Do </p>
-<p className="listTotal"> { this.props.entries.length } </p>
-</div>
-<div id="todolist" className="list">
-{ this.props.entries }
-</div>
-</div>
-);
-}
-});
-
-var InProgressList = React.createClass({
-render: function() {
-return (
-<div className="lists">
-<div className="listHeader">
-<p className="listTitle"> In Progress  </p>
-<p className="listTotal"> { this.props.entries.length } </p>
-</div>
-<div id="inprogresslist" className="list">
-{ this.props.entries }
-</div>
-</div>
-);
-}
-});
-*/
-
-/*
-   cards: [{
-   key: 1,
-   text: 'Write a cool JS library',
-   }, {
-   key: 2,
-   text: 'Make it generic enough',
-   }, {
-   key: 3,
-   text: 'Write README',
-   }, {
-   key: 4,
-   text: 'Create some examples',
-   }, {
-   key: 5,
-   text: 'Spam in Twitter and IRC to promote it (note that this element is taller than the others)',
-   }, {
-   key: 6,
-   text: '???',
-   }, {
-   key: 7,
-   text: 'PROFIT',
-   }],
-   */
+export default DragDropContext(HTML5Backend)(App);
