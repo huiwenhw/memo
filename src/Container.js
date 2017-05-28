@@ -13,26 +13,26 @@ class Container extends Component {
 		const backgroundColor = isActive ? 'lightpink' : '#FFF';
 
 		return connectDropTarget(
-				<div className="individualContainer" style={{...style, backgroundColor}}>
-				<div className="listHeader">
-				<p className="listTitle"> {this.props.title} </p>
-				<p className="listTotal"> {list.length} Projects </p>
-				</div>
-				<div>
-				{list.map((card, i) => {
-										   return (
-												   <Card 
-												   key={card.key}
-												   index={i}
-												   listId={this.props.id}
-												   card={card}														
-												   removeCard={remove}
-												   moveCard={move} />
-												  );
-									   })}
-				</div>
-				</div>
-				);
+			<div className="individualContainer" style={{...style, backgroundColor}}>
+			<div className="listHeader">
+			<p className="listTitle"> {this.props.title} </p>
+			<p className="listTotal"> {list.length} Projects </p>
+			</div>
+			<div>
+			{list.map((card, i) => {
+				return (
+					<Card 
+					key={card.key}
+					index={i}
+					listId={this.props.id}
+					card={card}														
+					removeCard={remove}
+					moveCard={move} />
+					);
+			})}
+			</div>
+			</div>
+			);
 	}
 }
 

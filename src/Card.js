@@ -9,10 +9,10 @@ class Card extends Component {
 		const opacity = isDragging ? 0 : 1;
 
 		return connectDragSource(connectDropTarget(
-					<div className="items" style={{...opacity }}>
-					{card.text}
-					</div>
-					));
+			<div className="items" style={{...opacity }}>
+			{card.text}
+			</div>
+			));
 	}
 }
 
@@ -41,16 +41,16 @@ const cardTarget = {
 		const hoverIndex = props.index;
 		const sourceListId = monitor.getItem().listId;
 
-		// Don't replace items with themselves
-		if (dragIndex === hoverIndex) {
-			return;
-		}
+			// Don't replace items with themselves
+			if (dragIndex === hoverIndex) {
+				return;
+			}
 
-		// Determine rectangle on screen
-		const hoverBoundingRect = findDOMNode(component).getBoundingClientRect();
+			// Determine rectangle on screen
+			const hoverBoundingRect = findDOMNode(component).getBoundingClientRect();
 
-		// Get vertical middle
-		const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+			// Get vertical middle
+			const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
 
 		// Determine mouse position
 		const clientOffset = monitor.getClientOffset();
@@ -86,11 +86,11 @@ const cardTarget = {
 };
 
 export default flow(
-		DropTarget("CARD", cardTarget, connect => ({
-			connectDropTarget: connect.dropTarget()
-		})),
-		DragSource("CARD", cardSource, (connect, monitor) => ({
-			connectDragSource: connect.dragSource(),
-			isDragging: monitor.isDragging()
-		}))
-		)(Card);
+	DropTarget("CARD", cardTarget, connect => ({
+		connectDropTarget: connect.dropTarget()
+	})),
+	DragSource("CARD", cardSource, (connect, monitor) => ({
+		connectDragSource: connect.dragSource(),
+		isDragging: monitor.isDragging()
+	}))
+	)(Card);
